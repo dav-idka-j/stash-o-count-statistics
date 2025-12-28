@@ -1,6 +1,43 @@
-name: O Count Statistics
+name: O-Count Statistics
 description: Adds an O-Count based statistics dashboard
 version: 1.0
+settings:
+  enable_ocountByTagsChart:
+    displayName: Enable O-Count by Tags Chart
+    description: If enabled, the chart showing O-Count distribution by tags will be displayed.
+    type: BOOLEAN
+  enable_ocountByDateChart:
+    displayName: Enable O-Count by Year Chart
+    description: If enabled, the chart showing O-Count distribution by year of media will be displayed.
+    type: BOOLEAN
+  enable_ocountByPerformerChart:
+    displayName: Enable O-Count by Performer Chart
+    description: If enabled, the chart showing O-Count distribution by performer will be displayed.
+    type: BOOLEAN
+  enable_ocountByStudioChart:
+    displayName: Enable O-Count by Studio Chart
+    description: If enabled, the chart showing O-Count distribution by studio will be displayed.
+    type: BOOLEAN
+  enable_ocountPlayCountScatter:
+    displayName: Enable O-Count vs. Play Count Scatter Chart
+    description: If enabled, the scatter chart comparing O-Count and Play Count will be displayed.
+    type: BOOLEAN
+  enable_ocountPlayDurationScatter:
+    displayName: Enable O-Count vs. Play Duration Scatter Chart
+    description: If enabled, the scatter chart comparing O-Count and Play Duration will be displayed.
+    type: BOOLEAN
+  enable_topOcountItemsChart:
+    displayName: Enable Top O-Count Items Chart
+    description: If enabled, the chart showing the top O-Count items will be displayed.
+    type: BOOLEAN
+  enable_sceneOcountDistributionChart:
+    displayName: Enable Scene O-Count Distribution Chart
+    description: If enabled, the pie chart showing scene O-Count distribution will be displayed.
+    type: BOOLEAN
+  enable_imageOcountDistributionChart:
+    displayName: Enable Image O-Count Distribution Chart
+    description: If enabled, the pie chart showing image O-Count distribution will be displayed.
+    type: BOOLEAN
 ui:
   requires:
     - CommunityScriptsUILibrary

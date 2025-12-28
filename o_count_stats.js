@@ -97,6 +97,14 @@
     }
   `;
 
+  const PLUGIN_SETTINGS_QUERY = `
+    query GetOCountStatsConfiguration {
+      configuration {
+        plugins(include: "o_count_stats")
+      }
+    }
+  `;
+
   const COMMON_FILTER_VARABLES = {
     o_counter: {
       value: 0,
@@ -661,10 +669,34 @@
     return { allItems, totalSceneCount, totalImageCount };
   };
 
+  const fetchSettingsAndProcessOcountData = async () => {
+    console.log("Fetching plugin settings...");
+    const pluginData = await performGraphQLQuery(PLUGIN_SETTINGS_QUERY);
+
+    console.log("PluginData: ", pluginData);
+
+    let pluginSettings = {};
+    if (pluginData?.configuration?.plugins?.o_count_stats) {
+      try {
+        pluginSettings = pluginData.configuration.plugins.o_count_stats;
+        console.log("Plugin settings fetched:", pluginSettings);
+      } catch (e) {
+        console.error("Failed to parse plugin settings:", e);
+      }
+    } else {
+      console.log("No config for O Count Statistics yet");
+    }
+
+    const { allItems, totalSceneCount, totalImageCount } =
+      await fetchAndProcessOcountData();
+    return { allItems, totalSceneCount, totalImageCount, pluginSettings };
+  };
+
   // ====================
   // Stats Section Render
   // ====================
-  const HEADER = '<h2 style="text-align: center;">O-Count Statistics</h2>';
+  const HEADER =
+    '<h2 style="text-align: center;">O-Count Statistics Dashboard</h2>';
   const renderOcountStatsSection = async (targetElement) => {
     let statsContainer = targetElement.querySelector("#ocount-stats-section");
     if (statsContainer) {
@@ -696,43 +728,91 @@
     }
 
     try {
-      const { allItems, totalSceneCount, totalImageCount } =
-        await fetchAndProcessOcountData();
+      const { allItems, totalSceneCount, totalImageCount, pluginSettings } =
+        await fetchSettingsAndProcessOcountData();
+
+      const areAnyChartsEnabled = Object.values(pluginSettings).some(
+        (setting) => setting,
+      );
+
+      if (!areAnyChartsEnabled) {
+        statsContainer.innerHTML =
+          HEADER +
+          '<p style="text-align: center;">No O-Count charts are enabled in the plugin settings.</p>';
+        console.log("No O-Count statistics charts enabled.");
+        return;
+      }
 
       console.log("Calculating and rendering statistics...");
       let outputHTML = `<div>
           ${HEADER}
-          <div class="row">
-            ${addWideGraphDiv("oCountByTagsChart")}
-            ${addWideGraphDiv("ocountByDateChart")}
-            ${addWideGraphDiv("ocountByPerformerChart")}
-            ${addWideGraphDiv("ocountByStudioChart")}
-            ${addWideGraphDiv("ocountPlayCountScatter")}
-            ${addWideGraphDiv("ocountPlayDurationScatter")}
-            ${addWideGraphDiv("topOcountItemsChart")}
-            ${addNarrowGraphDiv("sceneOcountDistributionChart")}
-            ${addNarrowGraphDiv("imageOcountDistributionChart")}
-        </div>
-      `;
+          <div class="row">`;
+
+      if (pluginSettings.enable_ocountByTagsChart) {
+        outputHTML += addWideGraphDiv("oCountByTagsChart");
+      }
+      if (pluginSettings.enable_ocountByDateChart) {
+        outputHTML += addWideGraphDiv("ocountByDateChart");
+      }
+      if (pluginSettings.enable_ocountByPerformerChart) {
+        outputHTML += addWideGraphDiv("ocountByPerformerChart");
+      }
+      if (pluginSettings.enable_ocountByStudioChart) {
+        outputHTML += addWideGraphDiv("ocountByStudioChart");
+      }
+      if (pluginSettings.enable_ocountPlayCountScatter) {
+        outputHTML += addWideGraphDiv("ocountPlayCountScatter");
+      }
+      if (pluginSettings.enable_ocountPlayDurationScatter) {
+        outputHTML += addWideGraphDiv("ocountPlayDurationScatter");
+      }
+      if (pluginSettings.enable_topOcountItemsChart) {
+        outputHTML += addWideGraphDiv("topOcountItemsChart");
+      }
+      if (pluginSettings.enable_sceneOcountDistributionChart) {
+        outputHTML += addNarrowGraphDiv("sceneOcountDistributionChart");
+      }
+      if (pluginSettings.enable_imageOcountDistributionChart) {
+        outputHTML += addNarrowGraphDiv("imageOcountDistributionChart");
+      }
+      outputHTML += `</div></div>`;
       statsContainer.innerHTML = outputHTML;
 
-      drawOcountByTags(allItems);
-      drawOcountByDateChart(allItems);
-      drawOcountByPerformerChart(allItems);
-      drawOcountByStudioChart(allItems);
-      drawOcountPlayCountScatter(allItems);
-      drawOcountPlayDurationScatter(allItems);
-      drawTopOcountItemsChart(allItems);
-      drawSceneOcountDistributionChart(
-        allItems,
-        totalSceneCount,
-        totalImageCount,
-      );
-      drawImageOcountDistributionChart(
-        allItems,
-        totalSceneCount,
-        totalImageCount,
-      );
+      if (pluginSettings.enable_ocountByTagsChart) {
+        drawOcountByTags(allItems);
+      }
+      if (pluginSettings.enable_ocountByDateChart) {
+        drawOcountByDateChart(allItems);
+      }
+      if (pluginSettings.enable_ocountByPerformerChart) {
+        drawOcountByPerformerChart(allItems);
+      }
+      if (pluginSettings.enable_ocountByStudioChart) {
+        drawOcountByStudioChart(allItems);
+      }
+      if (pluginSettings.enable_ocountPlayCountScatter) {
+        drawOcountPlayCountScatter(allItems);
+      }
+      if (pluginSettings.enable_ocountPlayDurationScatter) {
+        drawOcountPlayDurationScatter(allItems);
+      }
+      if (pluginSettings.enable_topOcountItemsChart) {
+        drawTopOcountItemsChart(allItems);
+      }
+      if (pluginSettings.enable_sceneOcountDistributionChart) {
+        drawSceneOcountDistributionChart(
+          allItems,
+          totalSceneCount,
+          totalImageCount,
+        );
+      }
+      if (pluginSettings.enable_imageOcountDistributionChart) {
+        drawImageOcountDistributionChart(
+          allItems,
+          totalSceneCount,
+          totalImageCount,
+        );
+      }
     } catch (e) {
       statsContainer.innerHTML = `<h2 style="color: red;">Error loading statistics:</h2><p>${e.message}</p>`;
       console.error(e);
