@@ -38,7 +38,7 @@
 
   const SCENE_QUERY = `
     query FindScenesWithOCount($scene_filter: SceneFilterType) {
-      findScenes(scene_filter: $scene_filter) {
+      findScenes(filter: {per_page: -1}, scene_filter: $scene_filter) {
         count
         scenes {
           id
@@ -47,12 +47,14 @@
           o_counter
           created_at
           updated_at
+          play_duration
           last_played_at
           play_count
           date
           tags { id, name }
           performers { id, name }
           studio { id, name }
+          files { path }
         }
       }
     }
@@ -60,7 +62,7 @@
 
   const IMAGE_QUERY = `
     query FindImagesWithOCount($image_filter: ImageFilterType) {
-      findImages(image_filter: $image_filter) {
+      findImages(filter: {per_page: -1}, image_filter: $image_filter) {
         count
         images {
           id
@@ -73,7 +75,24 @@
           tags { id, name }
           performers { id, name }
           studio { id, name }
+          files { path }
         }
+      }
+    }
+  `;
+
+  const TOTAL_SCENE_COUNT_QUERY = `
+    query FindScenesCount {
+      findScenes {
+        count
+      }
+    }
+  `;
+
+  const TOTAL_IMAGE_COUNT_QUERY = `
+    query FindImagesCount {
+      findImages {
+        count
       }
     }
   `;
@@ -113,18 +132,20 @@
         .sort((a, b) => b[1] - a[1])
         .slice(0, limit);
     },
+
     getOcountByDate(items) {
       const ocountByDate = new Map();
 
       for (const item of items) {
-        if (item.o_counter === null || item.o_counter === undefined) continue; // Skip items without o_counter
+        if (item.o_counter === null || item.o_counter === undefined) {
+          continue;
+        }
         const oCount = item.o_counter;
 
         let dateLabel = "Unknown";
         if (item.date) {
           try {
             const date = new Date(item.date);
-            // Group by year
             dateLabel = `${date.getFullYear()}`;
           } catch (e) {
             console.warn(
@@ -146,12 +167,129 @@
         return a[0].localeCompare(b[0]);
       });
     },
+
+    getOcountByPerformer(items, limit = 15) {
+      const performerCounts = new Map();
+      for (const item of items) {
+        if (
+          !item.performers ||
+          item.o_counter === null ||
+          item.o_counter === undefined
+        ) {
+          continue;
+        }
+        for (const performer of item.performers) {
+          performerCounts.set(
+            performer.name,
+            (performerCounts.get(performer.name) || 0) + item.o_counter,
+          );
+        }
+      }
+      return [...performerCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+    },
+
+    getOcountByStudio(items, limit = 15) {
+      const studioCounts = new Map();
+      for (const item of items) {
+        if (
+          !item.studio ||
+          item.o_counter === null ||
+          item.o_counter === undefined
+        )
+          continue;
+        studioCounts.set(
+          item.studio.name,
+          (studioCounts.get(item.studio.name) || 0) + item.o_counter,
+        );
+      }
+      return [...studioCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit);
+    },
+
+    getOcountAndPlayCount(items) {
+      const data = [];
+      for (const item of items) {
+        if (
+          item.play_count !== undefined &&
+          item.o_counter !== null &&
+          item.o_counter !== undefined
+        ) {
+          data.push({
+            x: item.play_count,
+            y: item.o_counter,
+            title: item.title,
+          });
+        }
+      }
+      return data;
+    },
+
+    getOcountAndPlayDuration(items) {
+      const data = [];
+      for (const item of items) {
+        if (
+          item.play_duration !== undefined &&
+          item.play_duration !== null &&
+          item.o_counter !== null &&
+          item.o_counter !== undefined
+        ) {
+          data.push({
+            x: item.play_duration,
+            y: item.o_counter,
+            title: item.title,
+          });
+        }
+      }
+      return data;
+    },
+
+    getTopOcountItems(items, limit = 15) {
+      return items
+        .filter(
+          (item) =>
+            item.o_counter !== null &&
+            item.o_counter !== undefined &&
+            item.o_counter > 0,
+        )
+        .sort((a, b) => b.o_counter - a.o_counter)
+        .slice(0, limit)
+        .map((item) => ({
+          title:
+            item.title ||
+            (item.files && item.files[0] && item.files[0].path
+              ? item.files[0].path.split("/").pop()
+              : item.id),
+          o_counter: item.o_counter,
+        }));
+    },
+
+    getOcountDistribution(items, totalSceneCount, totalImageCount) {
+      const scenesWithOcount = items.filter((item) =>
+        item.hasOwnProperty("play_count"),
+      ).length;
+      const imagesWithOcount = items.filter(
+        (item) => !item.hasOwnProperty("play_count"),
+      ).length;
+
+      return {
+        scenes: {
+          withOcount: scenesWithOcount,
+          withoutOcount: totalSceneCount - scenesWithOcount,
+        },
+        images: {
+          withOcount: imagesWithOcount,
+          withoutOcount: totalImageCount - imagesWithOcount,
+        },
+      };
+    },
   };
 
   // ===============
   // Graph Rendering
   // ===============
-
   const drawBarChart = (
     canvasId,
     labels,
@@ -218,6 +356,142 @@
           title: {
             text: chartTitle,
             display: true,
+            color: "#ccc",
+          },
+        },
+      },
+    });
+  };
+
+  const drawPieChart = (
+    canvasId,
+    labels,
+    data,
+    chartTitle,
+    backgroundColors,
+  ) => {
+    const ctx = document.getElementById(canvasId);
+
+    if (typeof Chart === "undefined") {
+      if (ctx && ctx.parentNode) {
+        ctx.parentNode.innerHTML = `<p style="color: yellow;">Chart.js library not found.</p>
+                                     <p>Please ensure Chart.js is correctly loaded in sessions.yml.</p>`;
+      }
+      console.error(
+        `Chart.js is not loaded. Cannot draw chart for ${chartTitle}.`,
+      );
+      return;
+    }
+
+    if (!ctx) return;
+
+    if (ctx.chart) {
+      ctx.chart.destroy();
+    }
+
+    ctx.chart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            data: data,
+            backgroundColor: backgroundColors,
+            hoverOffset: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              color: "#ccc",
+            },
+          },
+          title: {
+            display: true,
+            text: chartTitle,
+            color: "#ccc",
+          },
+        },
+      },
+    });
+  };
+
+  const drawScatterChart = (canvasId, data, xLabel, yLabel, chartTitle) => {
+    const ctx = document.getElementById(canvasId);
+
+    if (typeof Chart === "undefined") {
+      if (ctx && ctx.parentNode) {
+        ctx.parentNode.innerHTML = `<p style="color: yellow;">Chart.js library not found.</p>
+                                     <p>Please ensure Chart.js is correctly loaded in sessions.yml.</p>`;
+      }
+      console.error(
+        `Chart.js is not loaded. Cannot draw chart for ${chartTitle}.`,
+      );
+      return;
+    }
+
+    if (!ctx) return;
+
+    if (ctx.chart) {
+      ctx.chart.destroy();
+    }
+
+    ctx.chart = new Chart(ctx, {
+      type: "scatter",
+      data: {
+        datasets: [
+          {
+            label: "Data Points",
+            data: data,
+            backgroundColor: "rgba(255, 99, 132, 0.5)",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            type: "linear",
+            position: "bottom",
+            title: {
+              display: true,
+              text: xLabel,
+              color: "#ccc",
+            },
+            ticks: { color: "#ccc" },
+            grid: { color: "rgba(255,255,255,0.1)" },
+          },
+          y: {
+            type: "linear",
+            position: "left",
+            title: {
+              display: true,
+              text: yLabel,
+              color: "#ccc",
+            },
+            ticks: { color: "#ccc" },
+            grid: { color: "rgba(255,255,255,0.1)" },
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return `${context.raw.title} (X: ${context.raw.x}, Y: ${context.raw.y})`;
+              },
+            },
+          },
+          legend: {
+            display: false,
+          },
+          title: {
+            display: true,
+            text: chartTitle,
+            color: "#ccc",
           },
         },
       },
@@ -234,7 +508,7 @@
       "O-Count by Tag",
       "rgba(54, 162, 235, 0.5)",
       "rgba(54, 162, 235, 1)",
-      "y",
+      "y", // Tag names could be long, so horizontal bars are better
     );
   };
 
@@ -245,9 +519,109 @@
       ocountData.map((d) => d[0]),
       ocountData.map((d) => d[1]),
       "Total O-Count",
-      "O-Count by year of media",
+      "O-Count by Year of Media",
       "rgba(75, 192, 192, 0.5)",
       "rgba(75, 192, 192, 1)",
+    );
+  };
+
+  const drawOcountByPerformerChart = (items) => {
+    const ocountByPerformers = StatsCalculator.getOcountByPerformer(items, 15);
+    drawBarChart(
+      "ocountByPerformerChart",
+      ocountByPerformers.map((p) => p[0]),
+      ocountByPerformers.map((p) => p[1]),
+      "Performer O-Count",
+      "O-Count by Performer",
+      "rgba(153, 102, 255, 0.5)",
+      "rgba(153, 102, 255, 1)",
+    );
+  };
+
+  const drawOcountByStudioChart = (items) => {
+    const ocountByStudios = StatsCalculator.getOcountByStudio(items, 15);
+    drawBarChart(
+      "ocountByStudioChart",
+      ocountByStudios.map((s) => s[0]),
+      ocountByStudios.map((s) => s[1]),
+      "Studio O-Count",
+      "O-Count by Studio",
+      "rgba(255, 159, 64, 0.5)",
+      "rgba(255, 159, 64, 1)",
+      "y", // Studio names could be longer, so horizontal bars are better
+    );
+  };
+
+  const drawOcountPlayCountScatter = (items) => {
+    const data = StatsCalculator.getOcountAndPlayCount(items);
+    drawScatterChart(
+      "ocountPlayCountScatter",
+      data,
+      "Play Count",
+      "O-Count",
+      "O-Count vs. Play Count",
+    );
+  };
+
+  const drawOcountPlayDurationScatter = (items) => {
+    const data = StatsCalculator.getOcountAndPlayDuration(items);
+    drawScatterChart(
+      "ocountPlayDurationScatter",
+      data,
+      "Play Duration (seconds)",
+      "O-Count",
+    );
+  };
+
+  const drawTopOcountItemsChart = (items) => {
+    const topItems = StatsCalculator.getTopOcountItems(items, 15);
+    drawBarChart(
+      "topOcountItemsChart",
+      topItems.map((item) => item.title),
+      topItems.map((item) => item.o_counter),
+      "O-Count",
+      "Top 15 O-Count Items",
+      "rgba(255, 99, 132, 0.5)",
+      "rgba(255, 99, 132, 1)",
+      "y", // Item titles can be long, so horizontal bars are better
+    );
+  };
+
+  const drawSceneOcountDistributionChart = (
+    items,
+    totalSceneCount,
+    totalImageCount,
+  ) => {
+    const distribution = StatsCalculator.getOcountDistribution(
+      items,
+      totalSceneCount,
+      totalImageCount,
+    );
+    drawPieChart(
+      "sceneOcountDistributionChart",
+      ["With O-Count", "Without O-Count"],
+      [distribution.scenes.withOcount, distribution.scenes.withoutOcount],
+      "Scene O-Count Distribution",
+      ["rgba(75, 192, 192, 0.5)", "rgba(255, 99, 132, 0.5)"],
+    );
+  };
+
+  const drawImageOcountDistributionChart = (
+    items,
+    totalSceneCount,
+    totalImageCount,
+  ) => {
+    const distribution = StatsCalculator.getOcountDistribution(
+      items,
+      totalSceneCount,
+      totalImageCount,
+    );
+    drawPieChart(
+      "imageOcountDistributionChart",
+      ["With O-Count", "Without O-Count"],
+      [distribution.images.withOcount, distribution.images.withoutOcount],
+      "Image O-Count Distribution",
+      ["rgba(54, 162, 235, 0.5)", "rgba(255, 206, 86, 0.5)"],
     );
   };
 
@@ -260,22 +634,31 @@
       SCENE_QUERY,
       SCENE_FILTER_VARIABLES,
     );
-    console.log(`Found ${sceneData.findScenes.count} scenes`);
+    const oCountScenes = sceneData.findScenes.scenes;
+    console.log(`Found ${oCountScenes.length} scenes with O-count > 0`);
 
     console.log("Fetching images with O-count > 0...");
     const imageData = await performGraphQLQuery(
       IMAGE_QUERY,
       IMAGE_FILTER_VARIABLES,
     );
-    console.log(`Found ${imageData.findImages.count} images`);
+    const oCountImages = imageData.findImages.images;
+    console.log(`Found ${oCountImages.length} images with O-count > 0`);
 
-    const allItems = [
-      ...sceneData.findScenes.scenes,
-      ...imageData.findImages.images,
-    ];
+    console.log("Fetching total scene count...");
+    const totalSceneData = await performGraphQLQuery(TOTAL_SCENE_COUNT_QUERY);
+    const totalSceneCount = totalSceneData.findScenes.count;
+    console.log(`Total scenes: ${totalSceneCount}`);
+
+    console.log("Fetching total image count...");
+    const totalImageData = await performGraphQLQuery(TOTAL_IMAGE_COUNT_QUERY);
+    const totalImageCount = totalImageData.findImages.count;
+    console.log(`Total images: ${totalImageCount}`);
+
+    const allItems = [...oCountScenes, ...oCountImages];
 
     console.log("OCount Statistics: Data fetched and combined.");
-    return allItems;
+    return { allItems, totalSceneCount, totalImageCount };
   };
 
   // ====================
@@ -289,7 +672,6 @@
     } else {
       statsContainer = document.createElement("div");
       statsContainer.id = "ocount-stats-section";
-      // Add some styling for better integration with Stash's UI
       statsContainer.style.backgroundColor = "#1e1e1e";
       statsContainer.style.padding = "20px";
       statsContainer.style.borderRadius = "8px";
@@ -299,27 +681,58 @@
       statsContainer.innerHTML = HEADER + "<p>Loading statistics...</p>";
     }
 
+    function addWideGraphDiv(id) {
+      return `<div class="col-md-6 mb-3">
+        <div style="position: relative; height:400px"><canvas id="${id}"></canvas></div>
+      </div>
+      `;
+    }
+
+    function addNarrowGraphDiv(id) {
+      return `<div class="col-md-3 mb-3">
+        <div style="position: relative; height:400px"><canvas id="${id}"></canvas></div>
+      </div>
+      `;
+    }
+
     try {
-      const allItems = await fetchAndProcessOcountData(); // Fetch data here
+      const { allItems, totalSceneCount, totalImageCount } =
+        await fetchAndProcessOcountData();
 
       console.log("Calculating and rendering statistics...");
-      let outputHTML = `
-        <div>
+      let outputHTML = `<div>
           ${HEADER}
           <div class="row">
-            <div class="col-md-6 mb-3">
-                <div style="position: relative; height:400px"><canvas id="oCountByTagsChart"></canvas></div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div style="position: relative; height:400px"><canvas id="ocountByDateChart"></canvas></div>
-            </div>
-          </div>
+            ${addWideGraphDiv("oCountByTagsChart")}
+            ${addWideGraphDiv("ocountByDateChart")}
+            ${addWideGraphDiv("ocountByPerformerChart")}
+            ${addWideGraphDiv("ocountByStudioChart")}
+            ${addWideGraphDiv("ocountPlayCountScatter")}
+            ${addWideGraphDiv("ocountPlayDurationScatter")}
+            ${addWideGraphDiv("topOcountItemsChart")}
+            ${addNarrowGraphDiv("sceneOcountDistributionChart")}
+            ${addNarrowGraphDiv("imageOcountDistributionChart")}
         </div>
       `;
       statsContainer.innerHTML = outputHTML;
 
       drawOcountByTags(allItems);
       drawOcountByDateChart(allItems);
+      drawOcountByPerformerChart(allItems);
+      drawOcountByStudioChart(allItems);
+      drawOcountPlayCountScatter(allItems);
+      drawOcountPlayDurationScatter(allItems);
+      drawTopOcountItemsChart(allItems);
+      drawSceneOcountDistributionChart(
+        allItems,
+        totalSceneCount,
+        totalImageCount,
+      );
+      drawImageOcountDistributionChart(
+        allItems,
+        totalSceneCount,
+        totalImageCount,
+      );
     } catch (e) {
       statsContainer.innerHTML = `<h2 style="color: red;">Error loading statistics:</h2><p>${e.message}</p>`;
       console.error(e);
@@ -329,33 +742,16 @@
   // =======================
   // Main Plugin Entry Point
   // =======================
-  // Use csLib.PathElementListener to trigger rendering
   if (typeof csLib !== "undefined" && csLib.PathElementListener) {
     csLib.PathElementListener(
       "/stats",
-      "div.container-fluid div.mt-5", // Target element provided by user
-      renderOcountStatsSection, // Renamed function
+      "div.container-fluid div.mt-5",
+      renderOcountStatsSection,
     );
   } else {
-    console.warn(
+    console.error(
       "CommunityScriptsUILibrary (csLib) not found or PathElementListener is missing. Cannot register stats page listener. Attempting direct render if on /stats.",
     );
-    // Fallback: simple check if csLib is not available or if the page is already /stats on load
-    if (window.location.pathname === "/stats") {
-      console.log(
-        "OCount Statistics Plugin: csLib not found, attempting direct render on /stats.",
-      );
-      const targetElement = document.querySelector(
-        "div.container-fluid div.mt-5",
-      );
-      if (targetElement) {
-        renderOcountStatsSection(targetElement); // Renamed function
-      } else {
-        console.warn(
-          "OCount Statistics Plugin: Target element 'div.container-fluid div.mt-5' not found for direct render.",
-        );
-      }
-    }
   }
 
   console.log("OCount Statistics Plugin fully initialized");

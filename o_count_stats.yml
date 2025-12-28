@@ -1,6 +1,6 @@
 name: O Count Statistics
 description: Adds an O-Count based statistics dashboard
-version: 0.2
+version: 1.0
 ui:
   requires:
     - CommunityScriptsUILibrary
