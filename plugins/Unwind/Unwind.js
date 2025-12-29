@@ -371,8 +371,9 @@
     const tagCounts = oCountEvents.reduce((acc, curr) => {
       if (curr.item.tags) {
         curr.item.tags.forEach((t) => {
-          if (!acc[t.name])
+          if (!acc[t.name]) {
             acc[t.name] = { count: 0, byMonth: Array(12).fill(0) };
+          }
           acc[t.name].count++;
           acc[t.name].byMonth[new Date(curr.event).getMonth()]++;
         });
@@ -383,7 +384,6 @@
       .sort((tagA, tagB) => {
         const countA = tagA[1].count;
         const countB = tagB[1].count;
-
         return countB - countA;
       })
       .slice(0, 8)
@@ -424,9 +424,9 @@
     });
   }
 
-  // =================
+  // ============
   // UI Rendering
-  // =================
+  // ============
 
   const O_COUNT_PATH =
     "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
@@ -816,6 +816,66 @@
       "December",
     ];
 
+    const renderTimelineScreenshotGrid = (events) => {
+      if (!events || events.length === 0) return "";
+      const validEvents = events.filter(
+        (e) => e.item.paths?.screenshot || e.item.paths?.thumbnail,
+      );
+      if (validEvents.length === 0) return "";
+
+      // Sort events by date of O-count (ascending)
+      validEvents.sort(
+        (a, b) => new Date(a.event).getTime() - new Date(b.event).getTime(),
+      );
+
+      // Calculate column count for grid, up to 4 columns (or adjust as needed for timeline density)
+      const numColumns = Math.min(validEvents.length, 4);
+      const itemFlexBasis = `calc(${100 / numColumns}% - 5px)`; // 5px for gap
+
+      return `
+        <div class="timeline-screenshot-grid" style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: center;
+        ">
+        ${validEvents
+          .map((e) => {
+            const item = e.item;
+            const eventDate = new Date(e.event);
+            const dateString = eventDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }); // Format for date display
+
+            return `
+                    <div class="timeline-screenshot-item" style="
+                        flex: 0 0 ${itemFlexBasis};
+                        aspect-ratio: 16 / 9;
+                        background-image: url('${
+                          item.paths?.screenshot || item.paths?.thumbnail
+                        }');
+                        background-size: cover;
+                        background-position: center;
+                        border-radius: 4px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                        position: relative; /* Needed for overlay */
+                        align-content: center;
+                    ">
+                        <div class="timeline-item-overlay">
+                            <span class="timeline-item-date">${dateString}</span>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("")}
+        </div>
+    `;
+    };
+
     let timelineHtml =
       '<div class="col-md-12"><h3>Timeline</h3><ul class="timeline">';
 
@@ -830,6 +890,7 @@
                     </div>
                     <div class="timeline-body">
                       <p>You had ${monthEvents.length} O-events this month.</p>
+                      ${renderTimelineScreenshotGrid(monthEvents)}
                     </div>
                   </div>
                 </li>
@@ -917,9 +978,9 @@
     }
   }
 
-  // =================
+  // ==============
   // Main Functions
-  // =================
+  // ==============
   async function getAvailableYears() {
     // TODO: This filter can be defined in one place and used where possible
     const variables = {

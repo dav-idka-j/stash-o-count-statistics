@@ -57,6 +57,21 @@
     margin-bottom: 0;
     color: #aaa;
 }
+
+.timeline-item-overlay {
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 3vw;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease-in-out;
+}
+
+.timeline-screenshot-item:hover {
+    transform: translateY(-5px);
+}
+
 .unwind-plugin-container .unwind-header {
     display: flex;
     justify-content: space-between;
@@ -77,17 +92,16 @@ hr {
     border-top: 1px solid #333;
 }
 
-/* Styles for General Stats Boxes */
 .stat-box-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px; /* Spacing between boxes */
+    gap: 15px;
     margin-bottom: 20px;
 }
 
 .stat-box {
-    flex: 1 1 calc(33% - 10px); /* Adjusts to 3 boxes per row on wider screens, with some gap */
-    min-width: 250px; /* Minimum width before wrapping */
+    flex: 1 1 calc(33% - 10px);
+    min-width: 250px;
     height: 400px;
     background-size: cover;
     background-position: center;
@@ -205,9 +219,9 @@ hr {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     transition:
         transform 0.2s ease-in-out,
-        all 0.3s ease; /* Added all for scaling transition */
-    min-width: 100px; /* Minimum size for smaller boxes */
-    min-height: 100px; /* Minimum size for smaller boxes */
+        all 0.3s ease;
+    min-width: 100px;
+    min-height: 100px;
 }
 
 .performer-box:hover {
@@ -261,16 +275,6 @@ hr {
     left: 75%;
 }
 
-/* TODO: Remove */
-/* Color classes for symbols */
-.text-green-500 {
-    color: #28a745; /* Bootstrap's success green or similar */
-}
-
-.text-red-500 {
-    color: #dc3545; /* Bootstrap's danger red or similar */
-}
-
 .peak-day-screenshot-grid {
     display: flex;
     flex-wrap: wrap;
@@ -287,10 +291,14 @@ hr {
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative; /* Added for correct overlay positioning */
+    position: relative;
+    transition: transform 0.2s ease-in-out;
 }
 
-/* Styles for O-Count Deep-Dive - Peak Day Item Overlay */
+.peak-day-screenshot-item:hover {
+    transform: translateY(-5px);
+}
+
 .peak-day-item-overlay {
     position: absolute;
     top: 0;
@@ -307,23 +315,18 @@ hr {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.2em;
-    font-weight: bold;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
-    opacity: 0;
     transition: opacity 0.2s ease-in-out;
-}
-
-.peak-day-screenshot-item:hover .peak-day-item-overlay {
-    opacity: 1;
+    display: flex;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 3vw;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .peak-day-item-time {
-    /* Specific styling for the time text if needed, e.g., padding */
     padding: 5px 10px;
 }
 
-/* Styles for O-Count Deep-Dive - Streak Timelines */
 .streak-timeline-wrapper {
     margin-top: 20px;
     margin-bottom: 30px;
@@ -371,7 +374,7 @@ hr {
     flex-grow: 1; /* Distribute segments evenly */
     height: 100%;
     border-radius: 8px; /* Rounded ends for segments */
-    margin: 0 2px; /* Small gap between segments */
+    margin: 0 2px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
