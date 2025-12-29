@@ -1093,11 +1093,11 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
     statsContainer.className = "unwind-plugin-container";
     statsContainer.innerHTML = `
         <div class="unwind-header">
-        <h2>Unwind - A Year in Review</h2>
+        <h2>Unwind</h2>
         <div class="year-selector-container">
-            <label for="unwind-year-selector">Select Year:</label>
             <select id="unwind-year-selector" class="form-control"></select>
         </div>
+        <h2>in Review</h2>
         </div>
         <div id="unwind-stats-content"><p>Loading available years...</p></div>
     `;
