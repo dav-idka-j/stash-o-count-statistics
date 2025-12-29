@@ -428,6 +428,14 @@
   // UI Rendering
   // ============
 
+  function formatDate(date) {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
   const O_COUNT_PATH =
     "M22.855.758L7.875 7.024l12.537 9.733c2.633 2.224 6.377 2.937 9.77 1.518c4.826-2.018 7.096-7.576 5.072-12.413C33.232 1.024 27.68-1.261 22.855.758zm-9.962 17.924L2.05 10.284L.137 23.529a7.993 7.993 0 0 0 2.958 7.803a8.001 8.001 0 0 0 9.798-12.65zm15.339 7.015l-8.156-4.69l-.033 9.223c-.088 2 .904 3.98 2.75 5.041a5.462 5.462 0 0 0 7.479-2.051c1.499-2.644.589-6.013-2.04-7.523z";
 
@@ -485,14 +493,14 @@
       }
 
       return `
-        <div class="stat-box ${noImageClass}" style="${backgroundStyle}">
+        <div class="stat-box ${noImageClass} unwind-box-shadow unwind-hover-lift" style="${backgroundStyle}">
           <div class="stat-box-overlay">
             <div class="stat-box-value-container">
-            <div class="stat-box-symbol ${symbolColorClass}">${symbolHtml}</div>
-            <div class="stat-box-value">${value}</div>
+            <div class="stat-box-symbol ${symbolColorClass} unwind-text-shadow">${symbolHtml}</div>
+            <div class="stat-box-value unwind-text-shadow">${value}</div>
           </div>
-          <div class="stat-box-title">${boxTitle}</div>
-          <div class="stat-box-subtitle">${boxSubtitle}</div>
+          <div class="stat-box-title unwind-text-shadow">${boxTitle}</div>
+          <div class="stat-box-subtitle unwind-text-shadow">${boxSubtitle}</div>
           </div>
         </div>
       `;
@@ -500,7 +508,7 @@
 
     return `
       <div class="col-md-12">
-        <h3>General Stats</h3>
+        <h3 class="section-title">Highlights</h3>
         <div class="stat-box-container">
           ${renderStatBox("Scenes", "Added", newScenes, newScenesImage, "No New Scenes", "scenes")}
           ${renderStatBox("Images", "Added", newImages, newImagesImage, "No New Images", "images")}
@@ -533,7 +541,7 @@
 
     return `
       <div class="col-md-12">
-        <h3>Top Performers by O-Count</h3>
+        <h3 class="section-title">Top Performers by O-Count</h3>
         <div class="performer-box-container">
           ${topPerformers
             .map((performer, index) => {
@@ -546,12 +554,12 @@
               const width = 250 * scaleFactor;
 
               return `
-              <div class="performer-box" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
+              <div class="performer-box unwind-box-shadow unwind-hover-lift" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
                 <div class="performer-box-overlay">
-                  <div class="performer-box-name">${performer.name}</div>
+                  <div class="performer-box-name unwind-text-shadow">${performer.name}</div>
                   <div class="performer-box-count-overlay">
                     <div class="performer-box-count-container">
-                      <div class="performer-box-count">${performer.count}</div>
+                      <div class="performer-box-count unwind-text-shadow">${performer.count}</div>
                       ${O_COUNT_SYMBOL}
                     </div>
                     ${addCrown(index)}
@@ -615,7 +623,7 @@
               const eventTime = new Date(e.event);
               const timeString = `${String(eventTime.getHours()).padStart(2, "0")}:${String(eventTime.getMinutes()).padStart(2, "0")}`;
               return `
-                  <div class="peak-day-screenshot-item" style="
+                  <div class="peak-day-screenshot-item unwind-box-shadow unwind-hover-lift" style="
                     flex: 0 0 ${itemFlexBasis};
                     aspect-ratio: 16 / 9; /* Maintain aspect ratio */
                     background-image: url('${
@@ -625,9 +633,8 @@
                     background-position: center;
                     border-radius: 4px;
                     overflow: hidden;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
                   ">
-                    <div class="peak-day-item-overlay">
+                    <div class="peak-day-item-overlay unwind-text-shadow">
                       <span class="peak-day-item-time">${timeString}</span>
                       ${O_COUNT_SYMBOL}
                     </div>
@@ -657,9 +664,9 @@
         <div class="streak-timeline-wrapper">
           <p class="streak-timeline-title">${title}: ${duration} days</p>
           <div class="streak-timeline-container">
-            <span class="streak-timeline-date">${startDate}</span>
+            <span class="streak-timeline-date">${formatDate(startDate)}</span>
             ${segmentsHtml}
-            <span class="streak-timeline-date">${endDate}</span>
+            <span class="streak-timeline-date">${formatDate(endDate)}</span>
           </div>
         </div>
       `;
@@ -667,15 +674,15 @@
 
     return `
       <div class="col-md-12">
-        <h3>O-Count Deep-Dive</h3>
+        <h3 class="section-title">O-Count Peak</h3>
         <div class="deep-dive-section">
-          <h4>Peak Day: ${peakDay.date} (${peakDay.count} O-Counts)</h4>
+          <h4 class="section-subtitle">Your busiest
+day ways ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
           <div class="peak-day-content" style="text-align: center;">
             ${renderScreenshotGrid(peakDay.items)}
           </div>
         </div>
         <div class="deep-dive-section">
-          <h4 style="text-align: center;">Hourly Breakdown on ${peakDay.date}</h4>
           <div class="hourly-breakdown-chart-container" style="text-align: center;">
             <div style="position: relative; height:300px; display: inline-block; width: 100%; max-width: 600px;"><canvas id="hourly-breakdown-chart"></canvas></div>
           </div>
@@ -744,7 +751,7 @@
 
     return `
       <div class="col-md-12">
-        <h3>Session Durations</h3>
+        <h3 class="section-title">Session Durations</h3>
         <div class="session-lists-container">
             <div class="session-list-section">
                 <div class="session-list">
@@ -771,7 +778,7 @@
     }
     return `
         <div class="col-md-12">
-            <h3>Tag Statistics</h3>
+            <h3 class="section-title">Tag Statistics</h3>
             <div class="row">
                 <div class="col-md-6" style="text-align: center;">
                     <h4>Top 8 Tags by O-Count</h4>
@@ -790,7 +797,7 @@
     if (!topPlayTags || topPlayTags.length < 1) return "";
     return `
         <div class="col-md-12" style="text-align: center;">
-            <h3>Play Count by Tag</h3>
+            <h3 class="section-title">Play Count by Tag</h3>
             <div style="position: relative; height:400px; max-width: 600px; margin: 0 auto;"><canvas id="play-count-by-tag-chart"></canvas></div>
         </div>
     `;
@@ -844,14 +851,10 @@
           .map((e) => {
             const item = e.item;
             const eventDate = new Date(e.event);
-            const dateString = eventDate.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }); // Format for date display
+            const dateString = formatDate(eventDate);
 
             return `
-                    <div class="timeline-screenshot-item" style="
+                    <div class="timeline-screenshot-item unwind-box-shadow unwind-hover-lift" style="
                         flex: 0 0 ${itemFlexBasis};
                         aspect-ratio: 16 / 9;
                         background-image: url('${
@@ -861,11 +864,10 @@
                         background-position: center;
                         border-radius: 4px;
                         overflow: hidden;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
                         position: relative; /* Needed for overlay */
                         align-content: center;
                     ">
-                        <div class="timeline-item-overlay">
+                        <div class="timeline-item-overlay unwind-text-shadow">
                             <span class="timeline-item-date">${dateString}</span>
                         </div>
                     </div>
@@ -877,7 +879,7 @@
     };
 
     let timelineHtml =
-      '<div class="col-md-12"><h3>Timeline</h3><ul class="timeline">';
+      '<div class="col-md-12"><h3 class="section-title">O-Count Timeline</h3><ul class="timeline">';
 
     stats.timeline.forEach((monthEvents, i) => {
       if (monthEvents.length > 0) {
@@ -889,7 +891,6 @@
                       <h4 class="timeline-title">${monthLabels[i]}</h4>
                     </div>
                     <div class="timeline-body">
-                      <p>You had ${monthEvents.length} O-events this month.</p>
                       ${renderTimelineScreenshotGrid(monthEvents)}
                     </div>
                   </div>
@@ -909,7 +910,7 @@
         stats.hourlyLabels,
         stats.hourlyData,
         "O-Counts",
-        `Hourly Breakdown on ${stats.peakDay.date}`,
+        `Hourly Breakdown`,
         "rgba(75, 192, 192, 0.5)",
         "rgba(75, 192, 192, 1)",
       );
@@ -998,10 +999,12 @@
     const scenes = data?.findScenes?.scenes || [];
 
     scenes.forEach((s) => {
-      if (s.o_history)
+      if (s.o_history) {
         s.o_history.forEach((o) => years.add(new Date(o).getFullYear()));
-      if (s.play_history)
+      }
+      if (s.play_history) {
         s.play_history.forEach((p) => years.add(new Date(p).getFullYear()));
+      }
     });
 
     return Array.from(years)

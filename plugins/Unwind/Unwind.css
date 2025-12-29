@@ -1,3 +1,31 @@
+.unwind-text-shadow {
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.unwind-box-shadow {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.unwind-hover-lift {
+    transition: transform 0.2s ease-in-out;
+}
+
+.unwind-hover-lift:hover {
+    transform: translateY(-5px);
+}
+
+.section-title {
+    font-size: 3vw;
+    text-align: center;
+    font-weight: bold;
+}
+
+.section-subtitle {
+    font-size: 3vw;
+    text-align: center;
+    font-weight: bold;
+}
+
 .timeline {
     list-style: none;
     padding: 20px 0 20px;
@@ -63,13 +91,6 @@
     justify-content: center;
     font-weight: bold;
     font-size: 3vw;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease-in-out;
-}
-
-.timeline-screenshot-item:hover {
-    transform: translateY(-5px);
 }
 
 .unwind-plugin-container .unwind-header {
@@ -114,12 +135,6 @@ hr {
     justify-content: flex-start;
     color: white;
     font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease-in-out;
-}
-
-.stat-box:hover {
-    transform: translateY(-5px);
 }
 
 .stat-box-overlay {
@@ -141,7 +156,6 @@ hr {
 .stat-box-title {
     font-size: 2vw;
     opacity: 0.7;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
     margin: auto;
     text-align: center;
 }
@@ -149,7 +163,6 @@ hr {
 .stat-box-subtitle {
     font-size: 2vw;
     opacity: 0.7;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
     margin: auto;
     text-align: center;
 }
@@ -160,7 +173,6 @@ hr {
 }
 
 .stat-box-symbol {
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
     margin: auto;
     margin-right: 0px;
     width: 10%;
@@ -169,7 +181,6 @@ hr {
 
 .stat-box-value {
     font-size: 8vw;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
     margin: auto;
     margin-left: 0px;
     text-align: center;
@@ -216,16 +227,12 @@ hr {
     justify-content: flex-end;
     color: white;
     font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition:
-        transform 0.2s ease-in-out,
-        all 0.3s ease;
     min-width: 100px;
     min-height: 100px;
 }
 
 .performer-box:hover {
-    transform: translateY(-5px);
+    transition: all 0.3s ease;
 }
 
 .performer-box-overlay {
@@ -254,7 +261,6 @@ hr {
 .performer-box-name {
     font-size: 1.1em;
     margin-bottom: 5px;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .performer-box-count-overlay {
@@ -266,7 +272,6 @@ hr {
 .performer-box-count {
     font-size: 1.5em;
     line-height: 1;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .crown {
@@ -290,13 +295,7 @@ hr {
     background-repeat: no-repeat;
     border-radius: 4px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     position: relative;
-    transition: transform 0.2s ease-in-out;
-}
-
-.peak-day-screenshot-item:hover {
-    transform: translateY(-5px);
 }
 
 .peak-day-item-overlay {
@@ -320,7 +319,6 @@ hr {
     justify-content: center;
     font-weight: bold;
     font-size: 3vw;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
 }
 
 .peak-day-item-time {
