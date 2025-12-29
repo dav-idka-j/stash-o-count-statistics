@@ -187,13 +187,23 @@
       return acc;
     }, {});
 
-    stats.peakDay = { date: "N/A", count: 0 };
+    stats.peakDay = { date: "N/A", count: 0, items: [] };
     if (oCountEvents.length > 0) {
+      let maxCount = 0;
+      let peakDate = "N/A";
       for (const day in oCountsByDay) {
-        if (oCountsByDay[day] > stats.peakDay.count) {
-          stats.peakDay = { date: day, count: oCountsByDay[day] };
+        if (oCountsByDay[day] > maxCount) {
+          maxCount = oCountsByDay[day];
+          peakDate = day;
         }
       }
+      stats.peakDay = { date: peakDate, count: maxCount, items: [] };
+
+      stats.peakDay.items = oCountEvents.filter(
+        (e) =>
+          new Date(e.event).toISOString().substring(0, 10) ===
+          stats.peakDay.date,
+      ); // Keep full event objects
     }
 
     const peakDayEvents = oCountEvents.filter(
@@ -213,28 +223,98 @@
 
     const yearDays = new Set(Object.keys(oCountsByDay));
     stats.longestStreak = 0;
+    stats.longestStreakStart = null;
+    stats.longestStreakEnd = null;
     stats.longestDrySpell = 0;
+    stats.longestDrySpellStart = null;
+    stats.longestDrySpellEnd = null;
+
     let currentStreak = 0;
+    let currentStreakStart = null;
     let currentDrySpell = 0;
+    let currentDrySpellStart = null;
+
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31);
-    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setDate(d.getDate() + 1)
+    ) {
       const dateString = d.toISOString().substring(0, 10);
       if (yearDays.has(dateString)) {
+        // O-count on this day
         currentStreak++;
-        stats.longestDrySpell = Math.max(
-          stats.longestDrySpell,
-          currentDrySpell,
-        );
+        if (currentStreakStart === null) currentStreakStart = dateString;
+
+        if (currentDrySpell > stats.longestDrySpell) {
+          stats.longestDrySpell = currentDrySpell;
+          stats.longestDrySpellEnd = new Date(d);
+          stats.longestDrySpellEnd.setDate(
+            stats.longestDrySpellEnd.getDate() - 1,
+          ); // Previous day
+          stats.longestDrySpellStart = new Date(stats.longestDrySpellEnd);
+          stats.longestDrySpellStart.setDate(
+            stats.longestDrySpellStart.getDate() - stats.longestDrySpell + 1,
+          );
+          stats.longestDrySpellStart = stats.longestDrySpellStart
+            .toISOString()
+            .substring(0, 10);
+          stats.longestDrySpellEnd = stats.longestDrySpellEnd
+            .toISOString()
+            .substring(0, 10);
+        }
         currentDrySpell = 0;
+        currentDrySpellStart = null;
       } else {
+        // No O-count on this day
         currentDrySpell++;
-        stats.longestStreak = Math.max(stats.longestStreak, currentStreak);
+        if (currentDrySpellStart === null) currentDrySpellStart = dateString;
+
+        if (currentStreak > stats.longestStreak) {
+          stats.longestStreak = currentStreak;
+          stats.longestStreakEnd = new Date(d);
+          stats.longestStreakEnd.setDate(stats.longestStreakEnd.getDate() - 1); // Previous day
+          stats.longestStreakStart = new Date(stats.longestStreakEnd);
+          stats.longestStreakStart.setDate(
+            stats.longestStreakStart.getDate() - stats.longestStreak + 1,
+          );
+          stats.longestStreakStart = stats.longestStreakStart
+            .toISOString()
+            .substring(0, 10);
+          stats.longestStreakEnd = stats.longestStreakEnd
+            .toISOString()
+            .substring(0, 10);
+        }
         currentStreak = 0;
+        currentStreakStart = null;
       }
     }
-    stats.longestStreak = Math.max(stats.longestStreak, currentStreak);
-    stats.longestDrySpell = Math.max(stats.longestDrySpell, currentDrySpell);
+
+    // After the loop, check the last streak/dry spell
+    if (currentStreak > stats.longestStreak) {
+      stats.longestStreak = currentStreak;
+      stats.longestStreakEnd = endDate.toISOString().substring(0, 10);
+      stats.longestStreakStart = new Date(endDate);
+      stats.longestStreakStart.setDate(
+        stats.longestStreakStart.getDate() - stats.longestStreak + 1,
+      );
+      stats.longestStreakStart = stats.longestStreakStart
+        .toISOString()
+        .substring(0, 10);
+    }
+    if (currentDrySpell > stats.longestDrySpell) {
+      stats.longestDrySpell = currentDrySpell;
+      stats.longestDrySpellEnd = endDate.toISOString().substring(0, 10);
+      stats.longestDrySpellStart = new Date(endDate);
+      stats.longestDrySpellStart.setDate(
+        stats.longestDrySpellStart.getDate() - stats.longestDrySpell + 1,
+      );
+      stats.longestDrySpellStart = stats.longestDrySpellStart
+        .toISOString()
+        .substring(0, 10);
+    }
   }
 
   function calculateSessionDurations(stats, allScenes, year) {
@@ -460,17 +540,128 @@
   }
 
   function renderDeepDive(
-    { peakDay, longestStreak, longestDrySpell },
+    {
+      peakDay,
+      hourlyLabels,
+      hourlyData,
+      longestStreak,
+      longestStreakStart,
+      longestStreakEnd,
+      longestDrySpell,
+      longestDrySpellStart,
+      longestDrySpellEnd,
+    },
     oCountEvents,
   ) {
-    if (oCountEvents.length === 0) return "";
+    if (oCountEvents.length === 0) {
+      return "";
+    }
+
+    const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
+
+    const renderScreenshotGrid = (events) => {
+      if (!events || events.length === 0) return "";
+      const validEvents = events.filter(
+        (e) => e.item.paths?.screenshot || e.item.paths?.thumbnail,
+      );
+      if (validEvents.length === 0) return "";
+
+      // Sort events by timestamp in ascending order
+      validEvents.sort(
+        (a, b) => new Date(a.event).getTime() - new Date(b.event).getTime(),
+      );
+
+      // Calculate column count for grid, up to 4 columns
+      const numColumns = Math.min(validEvents.length, 4);
+      // Calculate flexible item size
+      const itemFlexBasis = `calc(${100 / numColumns}% - 5px)`; // 5px for gap, assuming 10px total gap
+
+      return `
+        <div class="peak-day-screenshot-grid" style="
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px; /* Adjust gap to match itemFlexBasis calculation */
+          margin-top: 15px;
+          justify-content: center;
+        ">
+          ${validEvents
+            .map((e) => {
+              const item = e.item;
+              const eventTime = new Date(e.event);
+              const timeString = `${String(eventTime.getHours()).padStart(2, "0")}:${String(eventTime.getMinutes()).padStart(2, "0")}`;
+              return `
+                  <div class="peak-day-screenshot-item" style="
+                    flex: 0 0 ${itemFlexBasis};
+                    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+                    background-image: url('${
+                      item.paths?.screenshot || item.paths?.thumbnail
+                    }');
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                  ">
+                    <div class="peak-day-item-overlay">
+                      <span class="peak-day-item-time">${timeString}</span>
+                      ${O_COUNT_SYMBOL}
+                    </div>
+                  </div>
+                `;
+            })
+            .join("")}
+        </div>
+      `;
+    };
+
+    const renderStreakTimeline = (
+      duration,
+      startDate,
+      endDate,
+      title,
+      colorClass,
+    ) => {
+      if (duration === 0) return "";
+      const numSegments = Math.min(duration, 50); // Max 50 segments for visual clarity
+      let segmentsHtml = "";
+      for (let i = 0; i < numSegments; i++) {
+        segmentsHtml += `<div class="streak-timeline-segment ${colorClass}"></div>`;
+      }
+
+      return `
+        <div class="streak-timeline-wrapper">
+          <p class="streak-timeline-title">${title}: ${duration} days</p>
+          <div class="streak-timeline-container">
+            <span class="streak-timeline-date">${startDate}</span>
+            ${segmentsHtml}
+            <span class="streak-timeline-date">${endDate}</span>
+          </div>
+        </div>
+      `;
+    };
+
     return `
       <div class="col-md-12">
         <h3>O-Count Deep-Dive</h3>
-        <p><b>Peak Day:</b> ${peakDay.date} (${peakDay.count} O-Counts)</p>
-        <p><b>Longest O-Count Streak:</b> ${longestStreak} days</p>
-        <p><b>Longest Dry Spell:</b> ${longestDrySpell} days</p>
-        <div style="position: relative; height:300px; margin-top: 20px;"><canvas id="hourly-breakdown-chart"></canvas></div>
+        <div class="deep-dive-section">
+          <h4>Peak Day: ${peakDay.date} (${peakDay.count} O-Counts)</h4>
+          <div class="peak-day-content" style="text-align: center;">
+            ${renderScreenshotGrid(peakDay.items)}
+          </div>
+        </div>
+        <div class="deep-dive-section">
+          <h4 style="text-align: center;">Hourly Breakdown on ${peakDay.date}</h4>
+          <div class="hourly-breakdown-chart-container" style="text-align: center;">
+            <div style="position: relative; height:300px; display: inline-block; width: 100%; max-width: 600px;"><canvas id="hourly-breakdown-chart"></canvas></div>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                ${renderStreakTimeline(longestStreak, longestStreakStart, longestStreakEnd, "Longest O-Count Streak", "streak-green")}
+                ${renderStreakTimeline(longestDrySpell, longestDrySpellStart, longestDrySpellEnd, "Longest Dry Spell", "streak-red")}
+            </div>
+        </div>
       </div>`;
   }
 
