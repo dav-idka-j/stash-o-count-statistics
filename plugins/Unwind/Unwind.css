@@ -99,6 +99,11 @@
     align-items: center;
     margin-bottom: 20px;
 }
+
+.unwind-plugin-container {
+    margin-left: 15px;
+    margin-right: 15px;
+}
 .unwind-plugin-container h2 {
     margin: 0;
 }

@@ -691,7 +691,7 @@
         <h3 class="section-title">O-Count Peak</h3>
         <div class="deep-dive-section">
           <h4 class="section-subtitle">Your busiest
-day ways ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
+day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
           <div class="peak-day-content" style="text-align: center;">
             ${renderScreenshotGrid(peakDay.items)}
           </div>
@@ -795,11 +795,11 @@ day ways ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4
             <h3 class="section-title">Tag Statistics</h3>
             <div class="row">
                 <div class="col-md-6" style="text-align: center;">
-                    <h4>Top 8 Tags by O-Count</h4>
+                    <h4 class="section-subtitle">Top 8 Tags by O-Count</h4>
                     <div style="position: relative; height:400px; max-width: 400px; margin: 0 auto;"><canvas id="tag-radar-chart"></canvas></div>
                 </div>
                 <div class="col-md-6" style="text-align: center;">
-                    <h4>Top 3 Tags Monthly Breakdown</h4>
+                    <h4 class="section-subtitle">Top 3 Tags Monthly Breakdown</h4>
                     ${top3Tags.map((_, i) => `<div style="position: relative; height:130px; max-width: 300px; margin: 0 auto;"><canvas id="tag-breakdown-chart-${i}"></canvas></div>`).join("")}
                 </div>
             </div>
@@ -902,7 +902,7 @@ day ways ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4
                   <div class="timeline-badge">${monthEvents.length}</div>
                   <div class="timeline-panel">
                     <div class="timeline-heading">
-                      <h4 class="timeline-title">${monthLabels[i]}</h4>
+                      <h4 class="timeline-title section-subtitle">${monthLabels[i]}</h4>
                     </div>
                     <div class="timeline-body">
                       ${renderTimelineScreenshotGrid(monthEvents)}
