@@ -1,3 +1,10 @@
+a.unwind-clickable,
+a.unwind-clickable:hover {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
 .unwind-text-shadow {
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
 }

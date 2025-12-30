@@ -568,18 +568,20 @@
               const width = 250 * scaleFactor;
 
               return `
-              <div class="performer-box unwind-box-shadow unwind-hover-lift" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
-                <div class="performer-box-overlay">
-                  <div class="performer-box-name unwind-text-shadow">${performer.name}</div>
-                  <div class="performer-box-count-overlay">
-                    <div class="performer-box-count-container">
-                      <div class="performer-box-count unwind-text-shadow">${performer.count}</div>
-                      ${O_COUNT_SYMBOL}
+              <a href="/performers/${performer.id}" class="unwind-clickable">
+                <div class="performer-box unwind-box-shadow unwind-hover-lift" style="${backgroundStyle}; height: ${height}px; width: ${width}px;">
+                  <div class="performer-box-overlay">
+                    <div class="performer-box-name unwind-text-shadow">${performer.name}</div>
+                    <div class="performer-box-count-overlay">
+                      <div class="performer-box-count-container">
+                        <div class="performer-box-count unwind-text-shadow">${performer.count}</div>
+                        ${O_COUNT_SYMBOL}
+                      </div>
+                      ${addCrown(index)}
                     </div>
-                    ${addCrown(index)}
                   </div>
                 </div>
-              </div>`;
+              </a>`;
             })
             .join("")}
         </div>
@@ -635,24 +637,36 @@
             .map((e) => {
               const item = e.item;
               const eventTime = new Date(e.event);
-              const timeString = `${String(eventTime.getHours()).padStart(2, "0")}:${String(eventTime.getMinutes()).padStart(2, "0")}`;
+              const timeString = `${String(eventTime.getHours()).padStart(
+                2,
+                "0",
+              )}:${String(eventTime.getMinutes()).padStart(2, "0")}`;
+              const itemUrl =
+                item.__typename === "Scene"
+                  ? `/scenes/${item.id}`
+                  : `/images/${item.id}`;
               return `
-                  <div class="peak-day-screenshot-item unwind-box-shadow unwind-hover-lift" style="
+                  <a href="${itemUrl}" class="unwind-clickable unwind-hover-lift" style="
                     flex: 0 0 ${itemFlexBasis};
                     aspect-ratio: 16 / 9; /* Maintain aspect ratio */
-                    background-image: url('${
-                      item.paths?.screenshot || item.paths?.thumbnail
-                    }');
-                    background-size: cover;
-                    background-position: center;
                     border-radius: 4px;
                     overflow: hidden;
                   ">
-                    <div class="peak-day-item-overlay unwind-text-shadow">
-                      <span class="peak-day-item-time">${timeString}</span>
-                      ${O_COUNT_SYMBOL}
+                    <div class="peak-day-screenshot-item unwind-box-shadow" style="
+                      width: 100%;
+                      height: 100%;
+                      background-image: url('${
+                        item.paths?.screenshot || item.paths?.thumbnail
+                      }');
+                      background-size: cover;
+                      background-position: center;
+                    ">
+                      <div class="peak-day-item-overlay unwind-text-shadow">
+                        <span class="peak-day-item-time">${timeString}</span>
+                        ${O_COUNT_SYMBOL}
+                      </div>
                     </div>
-                  </div>
+                  </a>
                 `;
             })
             .join("")}
@@ -746,20 +760,22 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
         : "";
 
       return `
-        <div class="session-item">
-          <div class="session-image" style="${backgroundStyle}"></div>
-          <div class="session-details">
-            <div class="session-title">${session.sceneTitle}</div>
-            <div class="session-timeline-wrapper">
-              <div class="session-timeline-container">
-                <div class="session-duration-line" style="width: ${lineWidth}%;"></div>
-                ${fiveMinMarkerPosition > 0 && fiveMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-5min" style="left: ${fiveMinMarkerPosition}%;"></div>` : ""}
-                ${eightMinMarkerPosition > 0 && eightMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-8min" style="left: ${eightMinMarkerPosition}%;"></div>` : ""}
+        <a href="/scenes/${session.sceneId}" class="unwind-clickable">
+          <div class="session-item">
+            <div class="session-image" style="${backgroundStyle}"></div>
+            <div class="session-details">
+              <div class="session-title">${session.sceneTitle}</div>
+              <div class="session-timeline-wrapper">
+                <div class="session-timeline-container">
+                  <div class="session-duration-line" style="width: ${lineWidth}%;"></div>
+                  ${fiveMinMarkerPosition > 0 && fiveMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-5min" style="left: ${fiveMinMarkerPosition}%;"></div>` : ""}
+                  ${eightMinMarkerPosition > 0 && eightMinMarkerPosition < MAX_LINE_PERCENTAGE ? `<div class="session-marker session-marker-8min" style="left: ${eightMinMarkerPosition}%;"></div>` : ""}
+                </div>
+                <span class="session-duration-text">${formatDuration(session.duration)}</span>
               </div>
-              <span class="session-duration-text">${formatDuration(session.duration)}</span>
             </div>
           </div>
-        </div>
+        </a>
       `;
     };
 
@@ -866,25 +882,34 @@ day was ${formatDate(peakDay.date)} with ${peakDay.count} ${O_COUNT_SYMBOL}</h4>
             const item = e.item;
             const eventDate = new Date(e.event);
             const dateString = formatDate(eventDate);
+            const itemUrl =
+              item.__typename === "Scene"
+                ? `/scenes/${item.id}`
+                : `/images/${item.id}`;
 
             return `
-                    <div class="timeline-screenshot-item unwind-box-shadow unwind-hover-lift" style="
+                    <a href="${itemUrl}" class="unwind-clickable unwind-hover-lift" style="
                         flex: 0 0 ${itemFlexBasis};
                         aspect-ratio: 16 / 9;
-                        background-image: url('${
-                          item.paths?.screenshot || item.paths?.thumbnail
-                        }');
-                        background-size: cover;
-                        background-position: center;
                         border-radius: 4px;
                         overflow: hidden;
                         position: relative; /* Needed for overlay */
-                        align-content: center;
                     ">
-                        <div class="timeline-item-overlay unwind-text-shadow">
-                            <span class="timeline-item-date">${dateString}</span>
+                        <div class="timeline-screenshot-item unwind-box-shadow" style="
+                            width: 100%;
+                            height: 100%;
+                            background-image: url('${
+                              item.paths?.screenshot || item.paths?.thumbnail
+                            }');
+                            background-size: cover;
+                            background-position: center;
+                            align-content: center;
+                        ">
+                            <div class="timeline-item-overlay unwind-text-shadow">
+                                <span class="timeline-item-date">${dateString}</span>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 `;
           })
           .join("")}
