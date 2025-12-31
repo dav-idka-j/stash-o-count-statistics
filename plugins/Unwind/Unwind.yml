@@ -1,5 +1,5 @@
 name: Unwind
-description: A "year in review" plugin for Stash.
+description: A "year in review" plugin
 version: "0.1.0"
 ui:
   requires:

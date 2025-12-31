@@ -29,17 +29,37 @@ find plugins -maxdepth 1 -mindepth 1 -type d | while read -r plugin_dir; do
         zip_filename="${plugin_id}.zip"
         zip_output_path="bin/${zip_filename}"
 
-        # Create zip archive from within the plugin directory
-        cd "$plugin_dir" || { echo "Error: Could not change directory to $plugin_dir"; exit 1; }
-        zip -r -q "../../${zip_output_path}" ./*
-        echo "  Created zip: $zip_output_path" >&2
+        # Check if zipping is necessary
+        should_zip=false
+        if [ ! -f "$zip_output_path" ]; then
+            should_zip=true
+            echo "  Zip does not exist. Creating..." >&2
+        else
+            # Find the newest file in the plugin directory.
+            # Note: We must cd into the directory to use find properly here.
+            newest_source_file_ts=$( (cd "$plugin_dir" && find . -type f -print0 | xargs -0 stat -c "%Y") | sort -nr | head -1)
+            zip_file_ts=$(stat -c "%Y" "$zip_output_path")
+
+            if [ "$newest_source_file_ts" -gt "$zip_file_ts" ]; then
+                should_zip=true
+                echo "  Source files are newer. Re-creating zip..." >&2
+            fi
+        fi
+
+        if [ "$should_zip" = false ]; then
+            echo "  Skipping zip creation, no changes detected." >&2
+        else
+            # Isolate directory change to subshell and zip
+            (cd "$plugin_dir" && zip -r -q "../../${zip_output_path}" ./*)
+            echo "  Created zip: $zip_output_path" >&2
+        fi
 
         # Calculate SHA256 hash
         sha256=$(sha256sum "$zip_output_path" | awk '{print $1}')
         echo "  SHA256: $sha256" >&2
 
-        # Get current date and time
-        current_date=$(date '+%Y-%m-%d %H:%M:%S')
+        # Use the zip file's modification date
+        current_date=$(date -r "$zip_output_path" '+%Y-%m-%d %H:%M:%S')
         echo "  Date: $current_date" >&2
 
         # Retrieve existing metadata and requires from the old index.yml
@@ -47,7 +67,7 @@ find plugins -maxdepth 1 -mindepth 1 -type d | while read -r plugin_dir; do
         formatted_metadata=""
         if [[ -n "$CURRENT_INDEX_YML_CONTENT" ]]; then
 
-            metadata_block_raw=$(yq '.[] | select(.name == "'"$plugin_name"'") | .metadata' <<< "$CURRENT_INDEX_YML_CONTENT")
+            metadata_block_raw=$(yq '.[] | select(.id == "'"$plugin_id"'") | .metadata' <<< "$CURRENT_INDEX_YML_CONTENT")
             if [[ -n "$metadata_block_raw" && "$metadata_block_raw" != "null" ]]; then
                 if [[ "${metadata_block_raw:0:1}" == "{" ]]; then
                     # It's JSON, convert to YAML and indent
@@ -62,7 +82,7 @@ find plugins -maxdepth 1 -mindepth 1 -type d | while read -r plugin_dir; do
 
         formatted_requires=""
         if [[ -n "$CURRENT_INDEX_YML_CONTENT" ]]; then
-            requires_block_raw=$(yq '.[] | select(.name == "'"$plugin_name"'") | .requires' <<< "$CURRENT_INDEX_YML_CONTENT")
+            requires_block_raw=$(yq '.[] | select(.id == "'"$plugin_id"'") | .requires' <<< "$CURRENT_INDEX_YML_CONTENT")
             if [[ -n "$requires_block_raw" && "$requires_block_raw" != "null" ]]; then
                 if [[ "${requires_block_raw:0:1}" == "[" ]]; then # Requires is typically a YAML list, which can be represented as JSON array
                     # JSON => Convert to YAML and indent
