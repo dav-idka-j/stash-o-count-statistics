@@ -1,3 +1,19 @@
+- id: CommunityScriptsUILibrary
+  name: CommunityScriptsUILibrary
+  version: "1.0.0"
+  date: 2025-12-31 13:29:59
+  path: bin/CommunityScriptsUILibrary.zip
+  sha256: 5862e0324804aef69e80e78f5cb0854696ac43bb4f32ada9b4b0cce7f281262e
+  metadata:
+    description: CommunityScripts UI helper library
+- id: StashGraphs
+  name: StashGraphs
+  version: "1.1.0"
+  date: 2025-12-31 13:25:08
+  path: bin/StashGraphs.zip
+  sha256: 14aea2e392db2887fc4d07adb80c07c06ebe416c4044148a700932b93bf904fb
+  metadata:
+    description: Charting UI helper library
 - id: OCountStatistics
   name: O-Count Statistics
   version: "1.0.2"
@@ -11,27 +27,14 @@
   requires:
     - StashGraphs
     - CommunityScriptsUILibrary
-- id: CommunityScriptsUILibrary
-  name: CommunityScriptsUILibrary
-  version: "1.0.0"
-  date: 2025-12-28 21:06:24
-  path: bin/CommunityScriptsUILibrary.zip
-  sha256: afe87dabc21efaa10afd939ca74ca0316ced2096dfff03b6a0b422668a2f5215
-  metadata:
-    description: CommunityScripts UI helper library
-- id: StashGraphs
-  name: StashGraphs
-  version: "1.1.0"
-  date: 2025-12-31 13:25:08
-  path: bin/StashGraphs.zip
-  sha256: 14aea2e392db2887fc4d07adb80c07c06ebe416c4044148a700932b93bf904fb
-  metadata:
-    description: Charting UI helper library
 - id: Unwind
   name: Unwind
   version: "0.1.0"
-  date: 2025-12-31 13:23:43
+  date: 2025-12-31 13:29:59
   path: bin/Unwind.zip
-  sha256: fd20ec91de4aee45baeb13e698d764aaeacc5cb823ec4cb82bbec215e5f53159
+  sha256: d37e2a885ef60fc9bc569beb4f89415acb3692695642a39ced0dbde36fabebe3
   metadata:
     description: A "year in review" plugin
+  requires:
+    - StashGraphs
+    - CommunityScriptsUILibrary
