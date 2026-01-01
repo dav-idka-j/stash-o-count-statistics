@@ -1388,7 +1388,7 @@
     statsContainer.className = "unwind-plugin-container";
     statsContainer.innerHTML = `
         <div class="unwind-header">
-        <h2>Unwind</h2>
+        <h2>Unwind:</h2>
         <div class="year-selector-container">
             <select id="unwind-year-selector" class="form-control unwind-year-selector-style"></select>
         </div>
