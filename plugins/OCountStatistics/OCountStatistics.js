@@ -11,30 +11,6 @@
   // =======
   // GraphQL
   // =======
-  const performGraphQLQuery = async (query, variables = {}) => {
-    const response = await fetch("/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    if (!response.ok) {
-      const responseText = await response.text();
-      throw new Error(
-        `GraphQL query failed with status ${response.status}: ${responseText}`,
-      );
-    }
-
-    const json = await response.json();
-    if (json.errors) {
-      console.error("GraphQL Errors:", json.errors);
-      throw new Error(`GraphQL query failed: ${JSON.stringify(json.errors)}`);
-    }
-
-    return json.data;
-  };
 
   const SCENE_QUERY = `
     query FindScenesWithOCount($scene_filter: SceneFilterType) {
@@ -93,14 +69,6 @@
     query FindImagesCount {
       findImages {
         count
-      }
-    }
-  `;
-
-  const PLUGIN_SETTINGS_QUERY = `
-    query GetOCountStatsConfiguration {
-      configuration {
-        plugins(include: "OCountStatistics")
       }
     }
   `;
@@ -434,28 +402,32 @@
   // ====================
   const fetchAndProcessOcountData = async () => {
     console.log("Fetching scenes with O-count > 0...");
-    const sceneData = await performGraphQLQuery(
-      SCENE_QUERY,
-      SCENE_FILTER_VARIABLES,
-    );
+    const sceneData = await csLib.callGQL({
+      query: SCENE_QUERY,
+      variables: SCENE_FILTER_VARIABLES,
+    });
     const oCountScenes = sceneData.findScenes.scenes;
     console.log(`Found ${oCountScenes.length} scenes with O-count > 0`);
 
     console.log("Fetching images with O-count > 0...");
-    const imageData = await performGraphQLQuery(
-      IMAGE_QUERY,
-      IMAGE_FILTER_VARIABLES,
-    );
+    const imageData = await csLib.callGQL({
+      query: IMAGE_QUERY,
+      variables: IMAGE_FILTER_VARIABLES,
+    });
     const oCountImages = imageData.findImages.images;
     console.log(`Found ${oCountImages.length} images with O-count > 0`);
 
     console.log("Fetching total scene count...");
-    const totalSceneData = await performGraphQLQuery(TOTAL_SCENE_COUNT_QUERY);
+    const totalSceneData = await csLib.callGQL({
+      query: TOTAL_SCENE_COUNT_QUERY,
+    });
     const totalSceneCount = totalSceneData.findScenes.count;
     console.log(`Total scenes: ${totalSceneCount}`);
 
     console.log("Fetching total image count...");
-    const totalImageData = await performGraphQLQuery(TOTAL_IMAGE_COUNT_QUERY);
+    const totalImageData = await csLib.callGQL({
+      query: TOTAL_IMAGE_COUNT_QUERY,
+    });
     const totalImageCount = totalImageData.findImages.count;
     console.log(`Total images: ${totalImageCount}`);
 
@@ -466,22 +438,9 @@
   };
 
   const fetchSettingsAndProcessOcountData = async () => {
-    console.log("Fetching plugin settings...");
-    const pluginData = await performGraphQLQuery(PLUGIN_SETTINGS_QUERY);
-
-    console.log("PluginData: ", pluginData);
-
-    let pluginSettings = {};
-    if (pluginData?.configuration?.plugins?.OCountStatistics) {
-      try {
-        pluginSettings = pluginData.configuration.plugins.OCountStatistics;
-        console.log("Plugin settings fetched:", pluginSettings);
-      } catch (e) {
-        console.error("Failed to parse plugin settings:", e);
-      }
-    } else {
-      console.log("No config for O Count Statistics yet");
-    }
+    const pluginSettings =
+      (await csLib.getConfiguration("OCountStatistics")) || {};
+    console.log("Plugin settings fetched:", pluginSettings);
 
     const { allItems, totalSceneCount, totalImageCount } =
       await fetchAndProcessOcountData();

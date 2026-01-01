@@ -11,25 +11,6 @@
   // =================
   // GraphQL Queries
   // =================
-  const performGraphQLQuery = async (query, variables = {}) => {
-    const response = await fetch("/graphql", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables }),
-    });
-    if (!response.ok) {
-      const responseText = await response.text();
-      throw new Error(
-        `GraphQL query failed with status ${response.status}: ${responseText}`,
-      );
-    }
-    const json = await response.json();
-    if (json.errors) {
-      console.error("GraphQL Errors:", json.errors);
-      throw new Error(`GraphQL query failed: ${JSON.stringify(json.errors)}`);
-    }
-    return json.data;
-  };
 
   const HISTORY_QUERY = `
     query UnwindHistory($scene_filter: SceneFilterType!) {
@@ -161,8 +142,9 @@
     // Fetch performer image paths
     let performerImagesMap = {};
     if (performerIds.length > 0) {
-      const imageData = await performGraphQLQuery(PERFORMERS_IMAGES_QUERY, {
-        performer_ids: performerIds,
+      const imageData = await csLib.callGQL({
+        query: PERFORMERS_IMAGES_QUERY,
+        variables: { performer_ids: performerIds },
       });
       if (imageData?.findPerformers?.performers) {
         imageData.findPerformers.performers.forEach((p) => {
@@ -1290,7 +1272,7 @@
         },
       },
     };
-    const data = await performGraphQLQuery(HISTORY_QUERY, variables);
+    const data = await csLib.callGQL({ query: HISTORY_QUERY, variables });
     console.log(data);
     const years = new Set();
     const currentYear = new Date().getFullYear();
@@ -1323,7 +1305,10 @@
         },
         image_filter: { o_counter: { value: 0, modifier: "GREATER_THAN" } },
       };
-      const data = await performGraphQLQuery(UNWIND_ITEMS_QUERY, variables);
+      const data = await csLib.callGQL({
+        query: UNWIND_ITEMS_QUERY,
+        variables,
+      });
       const allScenes = data.findScenes.scenes || [];
       const allImages = data.findImages.images || [];
 
