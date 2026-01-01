@@ -954,11 +954,11 @@
           </div>
         </div>
         <hr>
-        <div class="row">
+        <div>
             <h3 class="section-title">Anticipation and Release</h3>
             <div class="col-md-12">
-                ${renderStreakTimeline(longestStreak, longestStreakStart, longestStreakEnd, "This streak ignited excitement day after day", "streak-green")}
-                ${renderStreakTimeline(longestDrySpell, longestDrySpellStart, longestDrySpellEnd, "This dry spell offered a moment of reflection", "streak-red")}
+                ${renderStreakTimeline(longestStreak, longestStreakStart, longestStreakEnd, "This streak of o-counts ignited excitement day after day for you", "streak-green")}
+                ${renderStreakTimeline(longestDrySpell, longestDrySpellStart, longestDrySpellEnd, "This dry spell offered you a moment of reflection", "streak-red")}
             </div>
         </div>
       </div>`;
@@ -1000,7 +1000,7 @@
 
       return `
         <a href="/scenes/${session.sceneId}" class="unwind-clickable">
-          <div class="session-item">
+          <div class="session-item unwind-hover-lift">
             <div class="session-image" style="${backgroundStyle}"></div>
             <div class="session-details">
               <div class="session-title">${session.sceneTitle}</div>

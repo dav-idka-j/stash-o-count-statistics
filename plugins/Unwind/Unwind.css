@@ -433,9 +433,8 @@ hr {
     font-size: 0.9em;
     color: #ccc;
     margin-bottom: 5px;
-    white-space: nowrap;
+    max-height: 3em; /* Approximately two lines of text */
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .session-timeline-wrapper {
