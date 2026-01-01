@@ -1,0 +1,11 @@
+name: Unwind
+description: A "year in review" plugin
+version: "0.1.0"
+ui:
+  requires:
+    - CommunityScriptsUILibrary
+    - StashGraphs
+  javascript:
+    - Unwind.js
+  css:
+    - Unwind.css

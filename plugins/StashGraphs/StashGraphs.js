@@ -218,4 +218,56 @@
   };
   window.stashGraphs.drawScatterChart = drawScatterChart;
 
+  const drawRadarChart = (canvasId, labels, datasets, chartTitle) => {
+    const ctx = document.getElementById(canvasId);
+
+    if (typeof Chart === "undefined") {
+      if (ctx && ctx.parentNode) {
+        ctx.parentNode.innerHTML = `<p style="color: yellow;">Chart.js library not found.</p>
+                                     <p>Please ensure Chart.js is correctly loaded in StashGraphs.yml.</p>`;
+      }
+      console.error(
+        `Chart.js is not loaded. Cannot draw chart for ${chartTitle}.`,
+      );
+      return;
+    }
+
+    if (!ctx) return;
+
+    if (ctx.chart) {
+      ctx.chart.destroy();
+    }
+
+    ctx.chart = new Chart(ctx, {
+      type: "radar",
+      data: {
+        labels: labels,
+        datasets: datasets,
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: chartTitle,
+            color: "#ccc",
+          },
+          legend: {
+            labels: {
+              color: "#ccc",
+            },
+          },
+        },
+        scales: {
+          r: {
+            angleLines: { color: "rgba(255, 255, 255, 0.2)" },
+            grid: { color: "rgba(255, 255, 255, 0.2)" },
+            pointLabels: { color: "#ccc" },
+            ticks: { color: "#ccc", backdropColor: "transparent" },
+          },
+        },
+      },
+    });
+  };
+  window.stashGraphs.drawRadarChart = drawRadarChart;
 })();
