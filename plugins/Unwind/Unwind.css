@@ -36,7 +36,7 @@ a.unwind-clickable:hover {
     list-style: none;
     padding: 20px 0;
     position: relative;
-    display: flex; /* Use flexbox for the main timeline */
+    display: flex;
     flex-direction: column; /* Stack items vertically */
     align-items: center; /* Center items horizontally */
 }
@@ -50,7 +50,7 @@ a.unwind-clickable:hover {
     width: 3px;
     left: 50%;
     margin-left: -1.5px;
-    /* Simulate dashed line with repeating linear gradient */
+    /* Dashed line with repeating linear gradient */
     background-image: linear-gradient(to bottom, #fff 50%, transparent 50%);
     background-size: 100% 10px; /* 10px total height, 5px solid, 5px transparent */
     background-repeat: repeat-y;
@@ -74,9 +74,9 @@ a.unwind-clickable:hover {
 .timeline > li {
     margin-bottom: 20px;
     position: relative;
-    width: 100%; /* Make each li full width to allow internal positioning */
-    display: flex; /* Use flexbox for individual list items */
-    justify-content: center; /* Center content within the li */
+    width: 100%;
+    display: flex;
+    justify-content: center;
     align-items: center; /* Align items vertically in case of different panel heights */
     min-height: 80px; /* Give some minimum height for consistency */
 }
@@ -91,7 +91,7 @@ a.unwind-clickable:hover {
     text-align: center;
     position: absolute;
     top: 2.5em;
-    left: 50%; /* Center horizontally on the main timeline line */
+    left: 50%;
     transform: translate(-50%, -50%); /* Adjust for badge's own size */
     background-color: #1f2a32; /* Use main background color */
     z-index: 100;
@@ -214,11 +214,10 @@ a.unwind-clickable:hover {
     margin-right: 10px;
 }
 
-/* New styles for the year selector */
 .unwind-year-selector-style {
-    background-color: #1f2a32; /* Match background color */
-    color: #f5f8fa; /* White text for visibility */
-    border: 1px solid #4a5a6a; /* Subtle border to define it */
+    background-color: #1f2a32;
+    color: #f5f8fa;
+    border: 1px solid #4a5a6a;
     padding: 5px 22px 5px 5px;
     border-radius: 5px;
     appearance: none; /* Remove default browser styling */

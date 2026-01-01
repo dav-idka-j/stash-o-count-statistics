@@ -345,7 +345,9 @@
       if (yearDays.has(dateString)) {
         // O-count on this day
         currentStreak++;
-        if (currentStreakStart === null) currentStreakStart = dateString;
+        if (currentStreakStart === null) {
+          currentStreakStart = dateString;
+        }
 
         if (currentDrySpell > stats.longestDrySpell) {
           stats.longestDrySpell = currentDrySpell;
@@ -827,8 +829,6 @@
   function renderDeepDive(
     {
       peakDay,
-      hourlyLabels,
-      hourlyData,
       longestStreak,
       longestStreakStart,
       longestStreakEnd,
@@ -845,13 +845,16 @@
     const O_COUNT_SYMBOL = `<svg viewBox="0 0 38 38" width="1.25em" height="1.25em" style="display:inline-block; vertical-align:middle;"><path d="${O_COUNT_PATH}" fill="#F5F8FA"></path></svg>`;
 
     const renderScreenshotGrid = (events) => {
-      if (!events || events.length === 0) return "";
+      if (!events || events.length === 0) {
+        return "";
+      }
       const validEvents = events.filter(
         (e) => e.item.paths?.screenshot || e.item.paths?.thumbnail,
       );
-      if (validEvents.length === 0) return "";
+      if (validEvents.length === 0) {
+        return "";
+      }
 
-      // Sort events by timestamp in ascending order
       validEvents.sort(
         (a, b) => new Date(a.event).getTime() - new Date(b.event).getTime(),
       );
@@ -859,13 +862,13 @@
       // Calculate column count for grid, up to 4 columns
       const numColumns = Math.min(validEvents.length, 4);
       // Calculate flexible item size
-      const itemFlexBasis = `calc(${100 / numColumns}% - 5px)`; // 5px for gap, assuming 10px total gap
+      const itemFlexBasis = `calc(${100 / numColumns}% - 5px)`; // 5px for gap, 10px total gap
 
       return `
         <div class="peak-day-screenshot-grid" style="
           display: flex;
           flex-wrap: wrap;
-          gap: 5px; /* Adjust gap to match itemFlexBasis calculation */
+          gap: 5px;
           margin-top: 15px;
           justify-content: center;
         ">
@@ -884,7 +887,7 @@
               return `
                   <a href="${itemUrl}" class="unwind-clickable unwind-hover-lift" style="
                     flex: 0 0 ${itemFlexBasis};
-                    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+                    aspect-ratio: 16 / 9;
                     border-radius: 4px;
                     overflow: hidden;
                   ">
@@ -979,7 +982,7 @@
     const MAX_LINE_PERCENTAGE = 90;
 
     const renderSessionItem = (session) => {
-      // Ensure timelineMaxDuration is not 0 to avoid division by zero
+      // Ensure timelineMaxDuration is not 0
       const normalizedDuration =
         timelineMaxDuration > 0 ? session.duration / timelineMaxDuration : 0;
       const lineWidth = normalizedDuration * MAX_LINE_PERCENTAGE; // Line width in percentage
@@ -1062,7 +1065,9 @@
   }
 
   function renderPlayCountStats({ topPlayTags }) {
-    if (!topPlayTags || topPlayTags.length < 1) return "";
+    if (!topPlayTags || topPlayTags.length < 1) {
+      return "";
+    }
     return `
         <div class="col-md-12" style="text-align: center;">
             <h3 class="section-title">The Tags That Captivated You This Year</h3>
@@ -1092,11 +1097,15 @@
     ];
 
     const renderTimelineScreenshotGrid = (events) => {
-      if (!events || events.length === 0) return "";
+      if (!events || events.length === 0) {
+        return "";
+      }
       const validEvents = events.filter(
         (e) => e.item.paths?.screenshot || e.item.paths?.thumbnail,
       );
-      if (validEvents.length === 0) return "";
+      if (validEvents.length === 0) {
+        return "";
+      }
 
       // Sort events by date of O-count (ascending)
       validEvents.sort(
@@ -1268,7 +1277,6 @@
   // Main Functions
   // ==============
   async function getAvailableYears() {
-    // TODO: This filter can be defined in one place and used where possible
     const variables = {
       scene_filter: {
         OR: {
@@ -1320,16 +1328,18 @@
       const oCountEvents = [];
       const playEvents = [];
       allScenes.forEach((s) => {
-        if (s.o_history)
+        if (s.o_history) {
           s.o_history.forEach((o) => {
             if (new Date(o).getFullYear() == year)
               oCountEvents.push({ item: s, event: o });
           });
-        if (s.play_history)
+        }
+        if (s.play_history) {
           s.play_history.forEach((p) => {
             if (new Date(p).getFullYear() == year)
               playEvents.push({ item: s, event: p });
           });
+        }
       });
 
       const stats = {};
@@ -1369,7 +1379,9 @@
 
   async function renderUnwindStatsSection(targetElement) {
     let statsContainer = targetElement.querySelector("#unwind-stats-section");
-    if (statsContainer) return;
+    if (statsContainer) {
+      return;
+    }
 
     statsContainer = document.createElement("div");
     statsContainer.id = "unwind-stats-section";
