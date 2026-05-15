@@ -1,0 +1,26 @@
+name: AutoCensor
+description: Automatically detect and censor NSFW content using NudeNet.
+version: "0.1.0"
+settings:
+  enabled:
+    displayName: Enable AutoCensor
+    description: Enable or disable the auto-censoring plugin.
+    type: BOOLEAN
+  threshold:
+    displayName: Detection Threshold
+    description: Confidence threshold for censoring (0 to 100, default 50).
+    type: NUMBER
+  censorLabels:
+    displayName: Labels to Censor
+    description: Comma-separated list of labels to censor (default 50)
+    type: STRING
+ui:
+  requires:
+    - CommunityScriptsUILibrary
+  javascript:
+    - ort.min.js
+    - AutoCensor.js
+  css:
+    - AutoCensor.css
+  assets:
+    /: .

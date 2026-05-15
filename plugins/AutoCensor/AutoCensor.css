@@ -1,0 +1,10 @@
+/* AutoCensor CSS */
+
+.autocensor-pending {
+  filter: blur(20px) grayscale(100%);
+  transition: filter 0.3s ease;
+}
+
+.autocensor-processed {
+  filter: none;
+}
